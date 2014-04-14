@@ -1,0 +1,55 @@
+#!/bin/sh
+
+# Setting defaults
+DISTRIBUTION="wheezy"
+BOOT_APPEND="boot=live config lang=fr locales=fr_FR.UTF-8 keyboard-layouts=fr"
+MIRROR="http://ftp.fr.debian.org/debian/"
+PACKAGE_DIR="../packages"
+
+lb config noauto \
+        --architecture amd64 \
+        --distribution "${DISTRIBUTION}" \
+        --mirror-bootstrap "${MIRROR}" \
+        --mirror-binary "${MIRROR}" \
+        --bootappend-live "${BOOT_APPEND}" \
+        --bootappend-install "${BOOT_APPEND}" \
+        --debian-installer live \
+	"${@}"
+
+# libc6 >= 2.14 needed for ffi, get it from jessie
+if [ "jessie" != "${DISTRIBUTION}" ]
+then
+    mkdir -p config/archives
+
+    cat > config/archives/jessie.list.chroot << EOF
+deb ${MIRROR} jessie main
+EOF
+
+    cat > config/archives/jessie.pref.chroot << EOF
+Package: libc6
+Pin: release n=jessie
+Pin-Priority: 600
+
+Package: *
+Pin: release n=jessie
+Pin-Priority: 100
+EOF
+else
+    rm -f config/archives/jessie.list.chroot config/archives/jessie.pref.chroot 
+fi
+
+# Include some packages from debian repositories
+mkdir -p config/package-lists
+cat > config/package-lists/fpm-cookery.list.chroot << EOF
+libc6
+ruby
+rpm
+EOF
+
+# Find local packages to include
+rm -f "config/packages.chroot/"*.deb
+if [ -e "${PACKAGE_DIR}" ]
+then
+    mkdir -p config/packages.chroot/
+    find "${PACKAGE_DIR}" -maxdepth 2 -name '*.deb' -follow |xargs -I '{}' cp {} config/packages.chroot/
+fi
