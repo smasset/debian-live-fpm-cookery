@@ -34,14 +34,18 @@ Package: *
 Pin: release n=jessie
 Pin-Priority: 100
 EOF
+
+    mkdir -p config/package-lists
+    cat > config/package-lists/libc6.list.chroot << EOF
+libc6
+EOF
 else
-    rm -f config/archives/jessie.list.chroot config/archives/jessie.pref.chroot 
+    rm -f config/archives/jessie.list.chroot config/archives/jessie.pref.chroot config/package-lists/libc6.list.chroot
 fi
 
 # Include some packages from debian repositories
 mkdir -p config/package-lists
 cat > config/package-lists/fpm-cookery.list.chroot << EOF
-libc6
 ruby
 rpm
 EOF
