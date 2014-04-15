@@ -46,8 +46,8 @@ fi
 # Include some packages from debian repositories
 mkdir -p config/package-lists
 cat > config/package-lists/fpm-cookery.list.chroot << EOF
-ruby
 rpm
+ruby
 EOF
 
 # Find local packages to include
